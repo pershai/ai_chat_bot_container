@@ -38,10 +38,16 @@ class ConversationMemory:
         self.max_tokens = max_tokens
         self.recent_messages_count = recent_messages_count
         self.encoding = tiktoken.get_encoding(encoding_name)
-        self.llm = ChatGoogleGenerativeAI(
-            google_api_key=config.GOOGLE_API_KEY, model=config.LLM_MODEL_NAME
-        )
+        self._llm = None
         self.summary_cache: dict[str, str] = {}
+
+    def get_llm(self):
+        """Lazy load LLM instance"""
+        if self._llm is None:
+            self._llm = ChatGoogleGenerativeAI(
+                google_api_key=config.GOOGLE_API_KEY, model=config.LLM_MODEL_NAME
+            )
+        return self._llm
 
     def count_tokens(self, messages: list[BaseMessage]) -> int:
         """
@@ -93,7 +99,7 @@ class ConversationMemory:
         )
 
         # Get summary from LLM
-        response = await self.llm.ainvoke([HumanMessage(content=summary_prompt)])
+        response = await self.get_llm().ainvoke([HumanMessage(content=summary_prompt)])
         summary = response.content
 
         # Cache the summary
@@ -161,7 +167,7 @@ class ConversationMemory:
         topic_prompt = PromptTemplates.get_topic_extraction_prompt(combined_text)
 
         # Get topics from LLM
-        response = await self.llm.ainvoke([HumanMessage(content=topic_prompt)])
+        response = await self.get_llm().ainvoke([HumanMessage(content=topic_prompt)])
         topics_text = response.content
 
         # Parse comma-separated topics

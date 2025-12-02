@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 from typing import Annotated, Any, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, SystemMessage, ToolMessage
@@ -76,14 +77,19 @@ class AgentConfig:
 # Default configuration
 DEFAULT_CONFIG = AgentConfig()
 
-# Initialize LLM
-llm = ChatGoogleGenerativeAI(
-    google_api_key=config.GOOGLE_API_KEY, model=config.LLM_MODEL_NAME
-)
-
 # Bind tools
 tools = [verify_input, search_rag, search_internet, verify_output]
-llm_with_tools = llm.bind_tools(tools)
+
+
+# Initialize LLM (Lazy Load)
+@lru_cache(maxsize=1)
+def get_llm():
+    """Get the LLM instance with tools bound."""
+    llm = ChatGoogleGenerativeAI(
+        google_api_key=config.GOOGLE_API_KEY, model=config.LLM_MODEL_NAME
+    )
+    return llm.bind_tools(tools)
+
 
 # Initialize memory and context managers
 memory_manager = get_conversation_memory()
@@ -167,6 +173,7 @@ async def agent(state: AgentState):
 
     # Invoke LLM with tools
     try:
+        llm_with_tools = get_llm()
         response = llm_with_tools.invoke(prepared_messages)
         logger.info(
             "[Agent] LLM response received, has tool calls: %s",
