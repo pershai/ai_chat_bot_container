@@ -1,0 +1,52 @@
+# .dockerignore - Exclude unnecessary files from Docker build
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Documentation
+*.md
+!README.md
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+temp_*
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+qa_benchmark_results.csv
+logs/
+*.csv
