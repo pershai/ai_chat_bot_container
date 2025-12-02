@@ -5,13 +5,16 @@ Uses vector embeddings (semantic) + BM25 (keyword) with Reciprocal Rank Fusion.
 """
 
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, TYPE_CHECKING
 from dataclasses import dataclass
 
 from langchain_core.documents import Document
-from qdrant_client import QdrantClient, models
-from langchain_huggingface import HuggingFaceEmbeddings
 from src.core.config import config
+
+if TYPE_CHECKING:
+    from qdrant_client import QdrantClient
+    from langchain_huggingface import HuggingFaceEmbeddings
+    from src.services.hybrid_search import SearchResult
 
 logger = logging.getLogger(__name__)
 
@@ -167,8 +170,8 @@ class HybridSearchService:
 
     def __init__(
         self,
-        qdrant_client: Optional[QdrantClient] = None,
-        embeddings: Optional[HuggingFaceEmbeddings] = None,
+        qdrant_client: Optional["QdrantClient"] = None,
+        embeddings: Optional["HuggingFaceEmbeddings"] = None,
         collection_name: str = "documents",
         rrf_k: int = 60,
     ):
@@ -181,12 +184,22 @@ class HybridSearchService:
             collection_name: Qdrant collection name
             rrf_k: RRF constant (default: 60)
         """
-        self.qdrant_client = qdrant_client or QdrantClient(
-            url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY
-        )
-        self.embeddings = embeddings or HuggingFaceEmbeddings(
-            model_name=config.EMBEDDING_MODEL_NAME
-        )
+        if qdrant_client:
+            self.qdrant_client = qdrant_client
+        else:
+            from qdrant_client import QdrantClient
+            self.qdrant_client = QdrantClient(
+                url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY
+            )
+            
+        if embeddings:
+            self.embeddings = embeddings
+        else:
+            from langchain_huggingface import HuggingFaceEmbeddings
+            self.embeddings = HuggingFaceEmbeddings(
+                model_name=config.EMBEDDING_MODEL_NAME
+            )
+            
         self.collection_name = collection_name
         self.rrf_k = rrf_k
         self.bm25 = BM25Search()
@@ -206,6 +219,8 @@ class HybridSearchService:
         Returns:
             List of search results
         """
+        from qdrant_client import models
+        
         # Generate query embedding
         query_vector = self.embeddings.embed_query(query)
 
@@ -249,6 +264,8 @@ class HybridSearchService:
         Returns:
             List of search results
         """
+        from qdrant_client import models
+        
         # Fetch all user documents from Qdrant
         # Note: In production, you'd want to cache this or use a separate BM25 index
         scroll_result = self.qdrant_client.scroll(

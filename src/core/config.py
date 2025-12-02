@@ -27,11 +27,11 @@ class Config:
     LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME")
     RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
     APP_HOST = os.getenv("APP_HOST")
-    APP_PORT = int(os.getenv("APP_PORT"))
+    APP_PORT = int(os.getenv("APP_PORT", "8000"))
 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     REDIS_HOST = os.getenv("REDIS_HOST")
-    REDIS_PORT = int(os.getenv("REDIS_PORT"))
+    REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
 
 config = Config()

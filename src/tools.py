@@ -1,26 +1,73 @@
 import logging
+from functools import lru_cache
 from langchain_core.tools import tool
 from langchain_community.utilities import SerpAPIWrapper
-from langchain_qdrant import Qdrant
-from langchain_huggingface import HuggingFaceEmbeddings
 
 from qdrant_client import QdrantClient, models
-from llm_guard import scan_prompt, scan_output
-from llm_guard.input_scanners import PromptInjection, TokenLimit, Toxicity
-from llm_guard.output_scanners import NoRefusal
-from llm_guard.vault import Vault
 from src.core.config import config
 from src.services.hybrid_search import get_hybrid_search_service
 
-# Initialize Embeddings
-embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL_NAME)
+# Lazy loading functions
+@lru_cache(maxsize=1)
+def get_embeddings():
+    from langchain_huggingface import HuggingFaceEmbeddings
+    return HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL_NAME)
 
-# Initialize Qdrant Client
-qdrant_client = QdrantClient(url=config.QDRANT_URL)
+@lru_cache(maxsize=1)
+def get_qdrant_client():
+    return QdrantClient(url=config.QDRANT_URL)
 
+@lru_cache(maxsize=1)
+def get_vector_store_instance():
+    from langchain_qdrant import Qdrant
+    return Qdrant(
+        client=get_qdrant_client(),
+        collection_name=config.QDRANT_COLLECTION_NAME,
+        embeddings=get_embeddings(),
+    )
 
-# Initialize Vector Store (ensure collection exists in a real app, here we assume it might be created or we handle it)
-# For simplicity, we'll define a function to get the vector store
+@lru_cache(maxsize=1)
+def get_search_tool():
+    return SerpAPIWrapper(serpapi_api_key=config.SERPAPI_API_KEY)
+
+@lru_cache(maxsize=1)
+def get_vault():
+    from llm_guard.vault import Vault
+    return Vault()
+
+@lru_cache(maxsize=1)
+def get_input_scanners():
+    from llm_guard.input_scanners import PromptInjection, TokenLimit, Toxicity
+    
+    # Input scanners with adjusted thresholds
+    return [
+        # Anonymize disabled - was causing false positives on common words like "Gemini"
+        # Anonymize(vault=get_vault()),
+        # PromptInjection with higher threshold (0.92 instead of default 0.5)
+        # This reduces false positives while still catching actual injection attempts
+        PromptInjection(threshold=0.92),
+        # TokenLimit - keep as is, prevents excessive input
+        TokenLimit(limit=4096, encoding_name="cl100k_base"),
+        # Toxicity - keep as is, prevents abusive content
+        Toxicity(threshold=0.7),
+    ]
+
+@lru_cache(maxsize=1)
+def get_output_scanners():
+    from llm_guard.output_scanners import NoRefusal
+
+    # Output scanners - simplified to reduce over-filtering
+    return [
+        # Deanonymize disabled since we disabled Anonymize
+        # Deanonymize(vault=get_vault()),
+        # NoRefusal - prevents the model from refusing to answer
+        NoRefusal(threshold=0.75),
+        # Relevance and Sensitive disabled to reduce false positives
+        # Relevance(),
+        # Sensitive()
+    ]
+
+# Backwards compatibility for imports
 def get_vector_store():
     """
     Get a configured Qdrant vector store instance.
@@ -28,48 +75,14 @@ def get_vector_store():
     Returns:
         Qdrant: A Qdrant vector store configured with the client, collection name, and embeddings.
     """
-    return Qdrant(
-        client=qdrant_client,
-        collection_name=config.QDRANT_COLLECTION_NAME,
-        embeddings=embeddings,
-    )
-
-
-# Initialize Search
-search = SerpAPIWrapper(serpapi_api_key=config.SERPAPI_API_KEY)
-
-# LLM Guard Scanners - Tuned for reduced false positives
-vault = Vault()
-
-# Input scanners with adjusted thresholds
-input_scanners = [
-    # Anonymize disabled - was causing false positives on common words like "Gemini"
-    # Anonymize(vault=vault),
-    # PromptInjection with higher threshold (0.92 instead of default 0.5)
-    # This reduces false positives while still catching actual injection attempts
-    PromptInjection(threshold=0.92),
-    # TokenLimit - keep as is, prevents excessive input
-    TokenLimit(limit=4096, encoding_name="cl100k_base"),
-    # Toxicity - keep as is, prevents abusive content
-    Toxicity(threshold=0.7),
-]
-
-# Output scanners - simplified to reduce over-filtering
-output_scanners = [
-    # Deanonymize disabled since we disabled Anonymize
-    # Deanonymize(vault=vault),
-    # NoRefusal - prevents the model from refusing to answer
-    NoRefusal(threshold=0.75),
-    # Relevance and Sensitive disabled to reduce false positives
-    # Relevance(),
-    # Sensitive()
-]
+    return get_vector_store_instance()
 
 
 @tool
 def verify_input(query: str) -> str:
     """Verifies the user input using LLM Guard. Returns 'SAFE' if safe, otherwise the error message."""
-    sanitized_prompt, results_valid, results_score = scan_prompt(input_scanners, query)
+    from llm_guard import scan_prompt
+    sanitized_prompt, results_valid, results_score = scan_prompt(get_input_scanners(), query)
     if any(not result for result in results_valid.values()):
         return f"Input verification failed: {results_score}"
     return "SAFE"
@@ -159,7 +172,7 @@ def search_rag(query: str, state: dict = None, use_hybrid: bool = True) -> str:
 def search_internet(query: str) -> str:
     """Searches the internet for information."""
     try:
-        return search.run(query)
+        return get_search_tool().run(query)
     except Exception as e:
         return f"Error searching internet: {str(e)}"
 
@@ -167,8 +180,9 @@ def search_internet(query: str) -> str:
 @tool
 def verify_output(prompt: str, response: str) -> str:
     """Verifies the LLM output using LLM Guard. Returns 'SAFE' if safe, otherwise the error message."""
+    from llm_guard import scan_output
     sanitized_response, results_valid, results_score = scan_output(
-        output_scanners, prompt, response
+        get_output_scanners(), prompt, response
     )
     if any(not result for result in results_valid.values()):
         return f"Output verification failed: {results_score}"

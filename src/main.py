@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 import time
 import logging
@@ -5,9 +6,6 @@ from pythonjsonlogger import jsonlogger
 from src.core.config import config
 from src.core.database import init_db
 from src.routers import auth, chat, upload, conversations
-
-# Initialize DB
-init_db()
 
 # Configure Logging
 logger = logging.getLogger()
@@ -17,7 +15,20 @@ logHandler.setFormatter(formatter)
 logger.addHandler(logHandler)
 logger.setLevel(logging.INFO)
 
-app = FastAPI(title="AI Chat Bot")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize DB on startup
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+    yield
+    # Cleanup on shutdown if needed
+
+
+app = FastAPI(title="AI Chat Bot", lifespan=lifespan)
 
 
 @app.middleware("http")
