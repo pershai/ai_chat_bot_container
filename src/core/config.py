@@ -3,8 +3,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Config:
     """Configuration class for the application"""
+
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
     SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
     QDRANT_URL = os.getenv("QDRANT_URL")
@@ -12,10 +14,10 @@ class Config:
     POSTGRES_DB = os.getenv("POSTGRES_DB")
     POSTGRES_USER = os.getenv("POSTGRES_USER")
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-    
+
     # Database Configuration
     DATABASE_URL = os.getenv("DATABASE_URL")
-    
+
     # If not set, construct from components
     if not DATABASE_URL:
         DB_SCHEME = os.getenv("DB_SCHEME", "postgresql")
@@ -30,5 +32,6 @@ class Config:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     REDIS_HOST = os.getenv("REDIS_HOST")
     REDIS_PORT = int(os.getenv("REDIS_PORT"))
+
 
 config = Config()

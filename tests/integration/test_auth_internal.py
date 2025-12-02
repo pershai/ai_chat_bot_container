@@ -2,6 +2,7 @@ from src.core.database import SessionLocal
 from src.services.auth_service import create_user, authenticate_user
 from src.schemas.user import UserCreate
 
+
 def test_auth():
     db = SessionLocal()
     try:
@@ -21,11 +22,12 @@ def test_auth():
             print("✅ Authentication successful!")
         else:
             print("❌ Authentication failed!")
-            
+
     except Exception as e:
         print(f"❌ Error: {e}")
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     test_auth()

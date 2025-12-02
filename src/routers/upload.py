@@ -7,11 +7,12 @@ from src.models.user import User
 
 router = APIRouter(tags=["upload"])
 
+
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     result = await ingestion_service.ingest_pdf(file, current_user.id, db)
     if "Error" in result:

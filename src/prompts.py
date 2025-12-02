@@ -12,11 +12,12 @@ from dataclasses import dataclass
 @dataclass
 class BotCapabilities:
     """Define what the bot can do"""
+
     rag_search: bool = True
     internet_search: bool = False
     document_upload: bool = True
     conversation_history: bool = True
-    
+
     def to_string(self) -> str:
         """Convert capabilities to human-readable string"""
         caps = []
@@ -28,13 +29,13 @@ class BotCapabilities:
             caps.append("help you manage your knowledge base")
         if self.conversation_history:
             caps.append("remember our conversation history")
-        
+
         return ", ".join(caps) if caps else "answer your questions"
 
 
 class PromptTemplates:
     """Centralized prompt template management"""
-    
+
     # Base system prompt template
     SYSTEM_BASE = """You are {bot_name}, a helpful and knowledgeable AI assistant.
 
@@ -99,7 +100,7 @@ This is the start of a new conversation. Introduce yourself briefly and ask how 
     ) -> str:
         """
         Generate a dynamic system prompt based on context and preferences.
-        
+
         Args:
             bot_name: Name of the bot
             capabilities: BotCapabilities object defining what the bot can do
@@ -107,36 +108,42 @@ This is the start of a new conversation. Introduce yourself briefly and ask how 
             conversation_context: Dict with conversation history info
             user_preferences: Dict with user-specific preferences (personality, etc.)
             is_first_message: Whether this is the first message in a conversation
-            
+
         Returns:
             Complete system prompt string
         """
         if capabilities is None:
             capabilities = BotCapabilities()
-        
+
         if user_preferences is None:
             user_preferences = {}
-        
+
         # Build context information
         context_parts = []
-        
+
         # Add conversation context
         if conversation_context:
             if is_first_message:
                 context_parts.append(cls.CONTEXT_FIRST_MESSAGE)
             elif conversation_context.get("summary"):
-                context_parts.append(cls.CONTEXT_WITH_HISTORY.format(
-                    conversation_summary=conversation_context.get("summary", ""),
-                    topics=", ".join(conversation_context.get("topics", []))
-                ))
-        
+                context_parts.append(
+                    cls.CONTEXT_WITH_HISTORY.format(
+                        conversation_summary=conversation_context.get("summary", ""),
+                        topics=", ".join(conversation_context.get("topics", [])),
+                    )
+                )
+
         # Add document context
         if conversation_context and conversation_context.get("doc_count", 0) > 0:
-            context_parts.append(cls.CONTEXT_WITH_DOCUMENTS.format(
-                doc_count=conversation_context.get("doc_count", 0),
-                doc_topics=", ".join(conversation_context.get("doc_topics", ["various topics"]))
-            ))
-        
+            context_parts.append(
+                cls.CONTEXT_WITH_DOCUMENTS.format(
+                    doc_count=conversation_context.get("doc_count", 0),
+                    doc_topics=", ".join(
+                        conversation_context.get("doc_topics", ["various topics"])
+                    ),
+                )
+            )
+
         # Add personality
         personality = user_preferences.get("personality", "friendly")
         if personality == "professional":
@@ -147,40 +154,40 @@ This is the start of a new conversation. Introduce yourself briefly and ask how 
             context_parts.append(cls.PERSONALITY_CONCISE)
         elif personality == "detailed":
             context_parts.append(cls.PERSONALITY_DETAILED)
-        
+
         context_info = "\n".join(context_parts) if context_parts else ""
-        
+
         # Build base prompt
         base_prompt = cls.SYSTEM_BASE.format(
             bot_name=bot_name,
             capabilities=capabilities.to_string(),
-            context_info=context_info
+            context_info=context_info,
         )
-        
+
         # Add tool usage instructions
         if tool_usage_mode == "strict":
             tool_instructions = cls.TOOL_USAGE_STRICT
         else:
             tool_instructions = cls.TOOL_USAGE_FLEXIBLE
-        
+
         # Combine all parts
         full_prompt = f"{base_prompt}\n\n{tool_instructions}"
-        
+
         return full_prompt
-    
+
     @classmethod
     def get_conversation_summary_prompt(cls, messages: List[str]) -> str:
         """
         Generate a prompt for summarizing conversation history.
-        
+
         Args:
             messages: List of message contents to summarize
-            
+
         Returns:
             Prompt for the LLM to generate a summary
         """
         conversation_text = "\n".join([f"- {msg}" for msg in messages])
-        
+
         return f"""Please provide a brief summary of the following conversation in 2-3 sentences.
 Focus on the main topics discussed and any important conclusions or decisions.
 
@@ -193,10 +200,10 @@ Summary:"""
     def get_topic_extraction_prompt(cls, text: str) -> str:
         """
         Generate a prompt for extracting topics from text.
-        
+
         Args:
             text: Text to extract topics from
-            
+
         Returns:
             Prompt for topic extraction
         """
@@ -211,7 +218,7 @@ Topics:"""
 # Preset configurations for common use cases
 class PromptPresets:
     """Pre-configured prompt settings for common scenarios"""
-    
+
     @staticmethod
     def customer_support() -> Dict:
         """Configuration for customer support bot"""
@@ -221,14 +228,12 @@ class PromptPresets:
                 rag_search=True,
                 internet_search=False,
                 document_upload=True,
-                conversation_history=True
+                conversation_history=True,
             ),
             "tool_usage_mode": "strict",
-            "user_preferences": {
-                "personality": "professional"
-            }
+            "user_preferences": {"personality": "professional"},
         }
-    
+
     @staticmethod
     def research_assistant() -> Dict:
         """Configuration for research assistant bot"""
@@ -238,14 +243,12 @@ class PromptPresets:
                 rag_search=True,
                 internet_search=True,
                 document_upload=True,
-                conversation_history=True
+                conversation_history=True,
             ),
             "tool_usage_mode": "flexible",
-            "user_preferences": {
-                "personality": "detailed"
-            }
+            "user_preferences": {"personality": "detailed"},
         }
-    
+
     @staticmethod
     def quick_qa() -> Dict:
         """Configuration for quick Q&A bot"""
@@ -255,10 +258,8 @@ class PromptPresets:
                 rag_search=True,
                 internet_search=False,
                 document_upload=False,
-                conversation_history=False
+                conversation_history=False,
             ),
             "tool_usage_mode": "flexible",
-            "user_preferences": {
-                "personality": "concise"
-            }
+            "user_preferences": {"personality": "concise"},
         }

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from src.core.database import Base
 
+
 class Document(Base):
     __tablename__ = "documents"
 
@@ -11,4 +12,3 @@ class Document(Base):
     file_type = Column(String, nullable=True)  # pdf, docx, txt, etc.
     chunk_count = Column(Integer, nullable=True)  # Number of chunks created
     upload_date = Column(DateTime(timezone=True), server_default=func.now())
-

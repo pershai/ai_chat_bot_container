@@ -2,9 +2,11 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 
+
 class MessageCreate(BaseModel):
     role: str
     content: str
+
 
 class MessageResponse(BaseModel):
     id: int
@@ -16,8 +18,10 @@ class MessageResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ConversationCreate(BaseModel):
     title: str
+
 
 class ConversationResponse(BaseModel):
     id: int
@@ -28,6 +32,7 @@ class ConversationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class ConversationWithMessages(BaseModel):
     id: int

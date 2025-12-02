@@ -14,6 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 security = HTTPBearer()
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -23,6 +24,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, config.JWT_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 def verify_token(token: str) -> dict:
     try:
@@ -35,9 +37,10 @@ def verify_token(token: str) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
     token = credentials.credentials
     payload = verify_token(token)
@@ -45,13 +48,12 @@ def get_current_user(
     if username is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials"
+            detail="Could not validate credentials",
         )
-    
+
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
     return user

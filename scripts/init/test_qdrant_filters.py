@@ -22,7 +22,9 @@ print("Testing filter formats...")
 # Test 1: Simple dict
 try:
     print("\n1. Testing {'metadata.user_id': 1}")
-    docs = vector_store.similarity_search(query, k=3, filter={"metadata.user_id": user_id})
+    docs = vector_store.similarity_search(
+        query, k=3, filter={"metadata.user_id": user_id}
+    )
     print(f"   Found {len(docs)} documents")
     if docs:
         print(f"   First doc: {docs[0].page_content[:50]}")
@@ -35,8 +37,7 @@ try:
     filter_obj = models.Filter(
         must=[
             models.FieldCondition(
-                key="metadata.user_id",
-                match=models.MatchValue(value=user_id)
+                key="metadata.user_id", match=models.MatchValue(value=user_id)
             )
         ]
     )
@@ -54,6 +55,8 @@ try:
     print(f"   Found {len(docs)} documents")
     if docs:
         for i, doc in enumerate(docs):
-            print(f"   Doc {i+1}: {doc.page_content[:30]}... (user_id: {doc.metadata.get('user_id', 'N/A')})")
+            print(
+                f"   Doc {i + 1}: {doc.page_content[:30]}... (user_id: {doc.metadata.get('user_id', 'N/A')})"
+            )
 except Exception as e:
     print(f"   Error: {e}")

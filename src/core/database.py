@@ -8,14 +8,15 @@ DATABASE_URL = config.DATABASE_URL
 """Create engine with connection pooling"""
 engine = create_engine(
     DATABASE_URL,
-    pool_size=10,          # Number of connections to keep open
-    max_overflow=20,       # Max connections beyond pool_size
-    pool_pre_ping=True,    # Verify connections before using
-    pool_recycle=3600,     # Recycle connections after 1 hour
+    pool_size=10,  # Number of connections to keep open
+    max_overflow=20,  # Max connections beyond pool_size
+    pool_pre_ping=True,  # Verify connections before using
+    pool_recycle=3600,  # Recycle connections after 1 hour
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 def init_db():
     """Initialize the database"""
@@ -24,8 +25,9 @@ def init_db():
     from src.models.user import User  # noqa: F401
     from src.models.document import Document  # noqa: F401
     from src.models.conversation import Conversation, Message  # noqa: F401
-    
+
     Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     """Get a database session"""
