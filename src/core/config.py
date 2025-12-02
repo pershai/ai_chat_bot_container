@@ -23,9 +23,11 @@ class Config:
     if not DATABASE_URL:
         DB_SCHEME = os.getenv("DB_SCHEME", "postgresql")
         DATABASE_URL = f"{DB_SCHEME}://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}"
-    EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME")
-    QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
-    LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME")
+    EMBEDDING_MODEL_NAME = os.getenv(
+        "EMBEDDING_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2"
+    )
+    QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "documents")
+    LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gemini-pro")
     RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
     APP_HOST = os.getenv("APP_HOST")
     APP_PORT = int(os.getenv("APP_PORT", "8000"))
