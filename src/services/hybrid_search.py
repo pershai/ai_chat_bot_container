@@ -5,15 +5,17 @@ Uses vector embeddings (semantic) + BM25 (keyword) with Reciprocal Rank Fusion.
 """
 
 import logging
-from typing import List, Dict, Optional, TYPE_CHECKING
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional
 
 from langchain_core.documents import Document
+
 from src.core.config import config
 
 if TYPE_CHECKING:
-    from qdrant_client import QdrantClient
     from langchain_huggingface import HuggingFaceEmbeddings
+    from qdrant_client import QdrantClient
+
     from src.services.hybrid_search import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -46,18 +48,18 @@ class BM25Search:
         """
         self.k1 = k1
         self.b = b
-        self.corpus: List[Document] = []
-        self.corpus_tokens: List[List[str]] = []
+        self.corpus: list[Document] = []
+        self.corpus_tokens: list[list[str]] = []
         self.avgdl: float = 0.0
-        self.doc_freqs: Dict[str, int] = {}
-        self.idf: Dict[str, float] = {}
-        self.doc_len: List[int] = []
+        self.doc_freqs: dict[str, int] = {}
+        self.idf: dict[str, float] = {}
+        self.doc_len: list[int] = []
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         """Simple tokenization by splitting on whitespace and lowercasing"""
         return text.lower().split()
 
-    def build_index(self, documents: List[Document]):
+    def build_index(self, documents: list[Document]):
         """
         Build BM25 index from documents.
 
@@ -88,7 +90,7 @@ class BM25Search:
 
         return math.log((num_docs - doc_freq + 0.5) / (doc_freq + 0.5) + 1.0)
 
-    def get_scores(self, query: str) -> List[float]:
+    def get_scores(self, query: str) -> list[float]:
         """
         Calculate BM25 scores for query against all documents.
 
@@ -129,7 +131,7 @@ class BM25Search:
 
         return scores
 
-    def search(self, query: str, k: int = 5) -> List[SearchResult]:
+    def search(self, query: str, k: int = 5) -> list[SearchResult]:
         """
         Search for top-k documents using BM25.
 
@@ -188,25 +190,27 @@ class HybridSearchService:
             self.qdrant_client = qdrant_client
         else:
             from qdrant_client import QdrantClient
+
             self.qdrant_client = QdrantClient(
                 url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY
             )
-            
+
         if embeddings:
             self.embeddings = embeddings
         else:
             from langchain_huggingface import HuggingFaceEmbeddings
+
             self.embeddings = HuggingFaceEmbeddings(
                 model_name=config.EMBEDDING_MODEL_NAME
             )
-            
+
         self.collection_name = collection_name
         self.rrf_k = rrf_k
         self.bm25 = BM25Search()
 
     def vector_search(
         self, query: str, user_id: int, k: int = 10, score_threshold: float = 0.0
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Perform vector similarity search.
 
@@ -220,7 +224,7 @@ class HybridSearchService:
             List of search results
         """
         from qdrant_client import models
-        
+
         # Generate query embedding
         query_vector = self.embeddings.embed_query(query)
 
@@ -252,7 +256,7 @@ class HybridSearchService:
 
         return results
 
-    def bm25_search(self, query: str, user_id: int, k: int = 10) -> List[SearchResult]:
+    def bm25_search(self, query: str, user_id: int, k: int = 10) -> list[SearchResult]:
         """
         Perform BM25 keyword search.
 
@@ -265,7 +269,7 @@ class HybridSearchService:
             List of search results
         """
         from qdrant_client import models
-        
+
         # Fetch all user documents from Qdrant
         # Note: In production, you'd want to cache this or use a separate BM25 index
         scroll_result = self.qdrant_client.scroll(
@@ -303,10 +307,10 @@ class HybridSearchService:
 
     def reciprocal_rank_fusion(
         self,
-        vector_results: List[SearchResult],
-        bm25_results: List[SearchResult],
+        vector_results: list[SearchResult],
+        bm25_results: list[SearchResult],
         k: int = 5,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Combine results using Reciprocal Rank Fusion.
 
@@ -321,8 +325,8 @@ class HybridSearchService:
             Fused and ranked results
         """
         # Create a dictionary to accumulate RRF scores
-        rrf_scores: Dict[str, float] = {}
-        doc_map: Dict[str, SearchResult] = {}
+        rrf_scores: dict[str, float] = {}
+        doc_map: dict[str, SearchResult] = {}
 
         # Process vector results
         for result in vector_results:
@@ -363,7 +367,7 @@ class HybridSearchService:
         k: int = 5,
         use_hybrid: bool = True,
         vector_weight: float = 0.5,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Perform hybrid search combining vector and keyword search.
 
@@ -401,7 +405,7 @@ class HybridSearchService:
 
 
 # Singleton instance
-_hybrid_search_instance: Optional[HybridSearchService] = None
+_hybrid_search_instance: HybridSearchService | None = None
 
 
 def get_hybrid_search_service() -> HybridSearchService:

@@ -1,7 +1,7 @@
-from qdrant_client import models
 from langchain_community.vectorstores import Qdrant
 from langchain_huggingface import HuggingFaceEmbeddings
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
+
 from src.core.config import config
 
 # Test different filter formats

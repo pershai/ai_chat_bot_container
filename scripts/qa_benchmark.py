@@ -5,15 +5,17 @@ This script evaluates the quality of chatbot responses using Ragas metrics.
 """
 
 import asyncio
+
 from datasets import Dataset
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from ragas import evaluate
 from ragas.metrics import (
     answer_relevancy,
-    faithfulness,
-    context_recall,
     context_precision,
+    context_recall,
+    faithfulness,
 )
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+
 from src.core.config import config
 from src.services.chat_service import process_chat
 from src.tools import get_vector_store

@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
+
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from src.core.database import get_db
+
 from src.core.config import config
+from src.core.database import get_db
 from src.models.user import User
 
 # JWT Configuration
@@ -15,7 +16,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta

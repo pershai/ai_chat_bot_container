@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
-from src.services import ingestion_service
-from src.core.security import get_current_user
+
 from src.core.database import get_db
+from src.core.security import get_current_user
 from src.models.user import User
+from src.services import ingestion_service
 
 router = APIRouter(tags=["upload"])
 

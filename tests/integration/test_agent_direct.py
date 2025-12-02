@@ -1,8 +1,10 @@
 import asyncio
+
+from langchain_core.messages import HumanMessage
+
+from src.agent import app_graph
 from src.core.database import SessionLocal
 from src.models.user import User
-from langchain_core.messages import HumanMessage
-from src.agent import app_graph
 
 
 async def test_agent_directly():

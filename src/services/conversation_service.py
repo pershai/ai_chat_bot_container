@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
+
 from src.models.conversation import Conversation, Message
-from typing import List, Optional
 
 
 def create_conversation(db: Session, user_id: int, title: str) -> Conversation:
@@ -14,7 +14,7 @@ def create_conversation(db: Session, user_id: int, title: str) -> Conversation:
 
 def get_user_conversations(
     db: Session, user_id: int, skip: int = 0, limit: int = 50
-) -> List[Conversation]:
+) -> list[Conversation]:
     """Get all conversations for a user."""
     return (
         db.query(Conversation)
@@ -28,7 +28,7 @@ def get_user_conversations(
 
 def get_conversation(
     db: Session, conversation_id: int, user_id: int
-) -> Optional[Conversation]:
+) -> Conversation | None:
     """Get a specific conversation if it belongs to the user."""
     return (
         db.query(Conversation)
@@ -71,7 +71,7 @@ def add_message(db: Session, conversation_id: int, role: str, content: str) -> M
     return message
 
 
-def get_conversation_messages(db: Session, conversation_id: int) -> List[Message]:
+def get_conversation_messages(db: Session, conversation_id: int) -> list[Message]:
     """Get all messages for a conversation."""
     return (
         db.query(Message)

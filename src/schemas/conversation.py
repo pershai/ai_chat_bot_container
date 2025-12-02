@@ -1,6 +1,6 @@
-from pydantic import BaseModel
 from datetime import datetime
-from typing import List
+
+from pydantic import BaseModel
 
 
 class MessageCreate(BaseModel):
@@ -40,7 +40,7 @@ class ConversationWithMessages(BaseModel):
     title: str
     created_at: datetime
     updated_at: datetime
-    messages: List[MessageResponse]
+    messages: list[MessageResponse]
 
     class Config:
         from_attributes = True

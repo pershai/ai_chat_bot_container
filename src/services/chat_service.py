@@ -1,11 +1,13 @@
-from typing import Optional, Dict, Any
-from sqlalchemy.orm import Session
-from langchain_core.messages import HumanMessage, AIMessage
-from src.agent import app_graph, create_agent_state, AgentConfig
-from src.core.cache import get_cached, set_cached, get_cache_key
-from src.services import conversation_service
-from src.memory import get_conversation_memory
 import logging
+from typing import Any
+
+from langchain_core.messages import AIMessage, HumanMessage
+from sqlalchemy.orm import Session
+
+from src.agent import AgentConfig, app_graph, create_agent_state
+from src.core.cache import get_cache_key, get_cached, set_cached
+from src.memory import get_conversation_memory
+from src.services import conversation_service
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ async def process_chat(
     user_id: int,
     db: Session = None,
     conversation_id: int = None,
-    bot_config: Optional[Dict[str, Any]] = None,
+    bot_config: dict[str, Any] | None = None,
     enable_context_building: bool = True,
 ) -> str:
     """

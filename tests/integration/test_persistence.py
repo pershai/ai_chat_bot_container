@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
+
 from src.main import app
 
 client = TestClient(app)
@@ -37,7 +38,7 @@ def test_chat_persistence():
         # if the environment isn't set up for integration tests.
         # However, for now let's assume we want to see the failure.
         return
-        
+
     token = login_response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     print("✅ Logged in successfully")
@@ -89,9 +90,7 @@ def test_chat_persistence():
 
     # 5. Verify DB Persistence
     print("\n5. Verifying DB Persistence...")
-    history_response = client.get(
-        f"/conversations/{conversation_id}", headers=headers
-    )
+    history_response = client.get(f"/conversations/{conversation_id}", headers=headers)
     if history_response.status_code == 200:
         messages = history_response.json()["messages"]
         print(f"✅ Found {len(messages)} messages in history")

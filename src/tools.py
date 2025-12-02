@@ -1,44 +1,54 @@
 import logging
 from functools import lru_cache
-from langchain_core.tools import tool
-from langchain_community.utilities import SerpAPIWrapper
 
+from langchain_community.utilities import SerpAPIWrapper
+from langchain_core.tools import tool
 from qdrant_client import QdrantClient, models
+
 from src.core.config import config
 from src.services.hybrid_search import get_hybrid_search_service
+
 
 # Lazy loading functions
 @lru_cache(maxsize=1)
 def get_embeddings():
     from langchain_huggingface import HuggingFaceEmbeddings
+
     return HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL_NAME)
+
 
 @lru_cache(maxsize=1)
 def get_qdrant_client():
     return QdrantClient(url=config.QDRANT_URL)
 
+
 @lru_cache(maxsize=1)
 def get_vector_store_instance():
     from langchain_qdrant import Qdrant
+
     return Qdrant(
         client=get_qdrant_client(),
         collection_name=config.QDRANT_COLLECTION_NAME,
         embeddings=get_embeddings(),
     )
 
+
 @lru_cache(maxsize=1)
 def get_search_tool():
     return SerpAPIWrapper(serpapi_api_key=config.SERPAPI_API_KEY)
 
+
 @lru_cache(maxsize=1)
 def get_vault():
     from llm_guard.vault import Vault
+
     return Vault()
+
 
 @lru_cache(maxsize=1)
 def get_input_scanners():
     from llm_guard.input_scanners import PromptInjection, TokenLimit, Toxicity
-    
+
     # Input scanners with adjusted thresholds
     return [
         # Anonymize disabled - was causing false positives on common words like "Gemini"
@@ -51,6 +61,7 @@ def get_input_scanners():
         # Toxicity - keep as is, prevents abusive content
         Toxicity(threshold=0.7),
     ]
+
 
 @lru_cache(maxsize=1)
 def get_output_scanners():
@@ -67,6 +78,7 @@ def get_output_scanners():
         # Sensitive()
     ]
 
+
 # Backwards compatibility for imports
 def get_vector_store():
     """
@@ -82,7 +94,10 @@ def get_vector_store():
 def verify_input(query: str) -> str:
     """Verifies the user input using LLM Guard. Returns 'SAFE' if safe, otherwise the error message."""
     from llm_guard import scan_prompt
-    sanitized_prompt, results_valid, results_score = scan_prompt(get_input_scanners(), query)
+
+    sanitized_prompt, results_valid, results_score = scan_prompt(
+        get_input_scanners(), query
+    )
     if any(not result for result in results_valid.values()):
         return f"Input verification failed: {results_score}"
     return "SAFE"
@@ -181,6 +196,7 @@ def search_internet(query: str) -> str:
 def verify_output(prompt: str, response: str) -> str:
     """Verifies the LLM output using LLM Guard. Returns 'SAFE' if safe, otherwise the error message."""
     from llm_guard import scan_output
+
     sanitized_response, results_valid, results_score = scan_output(
         get_output_scanners(), prompt, response
     )

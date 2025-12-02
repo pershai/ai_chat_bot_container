@@ -1,7 +1,8 @@
 import asyncio
+
 from src.core.database import SessionLocal
-from src.services.ingestion_service import ingest_pdf
 from src.models.user import User
+from src.services.ingestion_service import ingest_pdf
 
 
 class MockUploadFile:

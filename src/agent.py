@@ -1,16 +1,15 @@
 import logging
-from typing import TypedDict, Optional, Dict, Any, Literal
-from typing import Annotated
-from langgraph.graph.message import add_messages
-from langgraph.graph import StateGraph, END, START
+from typing import Annotated, Any, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, SystemMessage, ToolMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
-from src.tools import verify_input, search_rag, search_internet, verify_output
-from src.core.config import config
-from src.prompts import PromptTemplates, BotCapabilities
-from src.memory import get_context_window_manager, get_conversation_memory
+from langgraph.graph import END, START, StateGraph
+from langgraph.graph.message import add_messages
 
+from src.core.config import config
+from src.memory import get_context_window_manager, get_conversation_memory
+from src.prompts import BotCapabilities, PromptTemplates
+from src.tools import search_internet, search_rag, verify_input, verify_output
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +21,11 @@ class AgentState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
     user_id: int
     # Optional configuration
-    bot_config: Optional[Dict[str, Any]]
+    bot_config: dict[str, Any] | None
     # Context information
-    conversation_context: Optional[Dict[str, Any]]
+    conversation_context: dict[str, Any] | None
     # Metadata
-    metadata: Optional[Dict[str, Any]]
+    metadata: dict[str, Any] | None
 
 
 # Agent configuration
@@ -57,7 +56,7 @@ class AgentConfig:
             conversation_history=enable_memory,
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert config to dictionary"""
         return {
             "bot_name": self.bot_name,
@@ -69,7 +68,7 @@ class AgentConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AgentConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "AgentConfig":
         """Create config from dictionary"""
         return cls(**data)
 
@@ -300,9 +299,9 @@ app_graph = workflow.compile()
 def create_agent_state(
     messages: list[BaseMessage],
     user_id: int,
-    bot_config: Optional[Dict[str, Any]] = None,
-    conversation_context: Optional[Dict[str, Any]] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    bot_config: dict[str, Any] | None = None,
+    conversation_context: dict[str, Any] | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> AgentState:
     """
     Create an agent state with all necessary fields.

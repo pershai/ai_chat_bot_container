@@ -1,7 +1,8 @@
 import asyncio
+
 from src.core.database import SessionLocal
-from src.services.chat_service import process_chat
 from src.models.user import User
+from src.services.chat_service import process_chat
 
 
 async def test_chat_debug():

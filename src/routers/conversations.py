@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+
 from src.core.database import get_db
 from src.core.security import get_current_user
 from src.models.user import User
@@ -27,7 +27,7 @@ def create_conversation(
     return new_conversation
 
 
-@router.get("/", response_model=List[ConversationResponse])
+@router.get("/", response_model=list[ConversationResponse])
 def list_conversations(
     skip: int = 0,
     limit: int = 50,

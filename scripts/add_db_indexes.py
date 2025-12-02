@@ -4,6 +4,7 @@ Run this after the initial database setup.
 """
 
 from sqlalchemy import create_engine, text
+
 from src.core.config import config
 
 DATABASE_URL = f"postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}/{config.POSTGRES_DB}"

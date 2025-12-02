@@ -5,7 +5,6 @@ This module provides configurable system prompts that can be customized
 based on user preferences, conversation context, and bot capabilities.
 """
 
-from typing import Optional, Dict, List
 from dataclasses import dataclass
 
 
@@ -92,10 +91,10 @@ This is the start of a new conversation. Introduce yourself briefly and ask how 
     def get_system_prompt(
         cls,
         bot_name: str = "AI Assistant",
-        capabilities: Optional[BotCapabilities] = None,
+        capabilities: BotCapabilities | None = None,
         tool_usage_mode: str = "strict",  # "strict" or "flexible"
-        conversation_context: Optional[Dict] = None,
-        user_preferences: Optional[Dict] = None,
+        conversation_context: dict | None = None,
+        user_preferences: dict | None = None,
         is_first_message: bool = False,
     ) -> str:
         """
@@ -176,7 +175,7 @@ This is the start of a new conversation. Introduce yourself briefly and ask how 
         return full_prompt
 
     @classmethod
-    def get_conversation_summary_prompt(cls, messages: List[str]) -> str:
+    def get_conversation_summary_prompt(cls, messages: list[str]) -> str:
         """
         Generate a prompt for summarizing conversation history.
 
@@ -220,7 +219,7 @@ class PromptPresets:
     """Pre-configured prompt settings for common scenarios"""
 
     @staticmethod
-    def customer_support() -> Dict:
+    def customer_support() -> dict:
         """Configuration for customer support bot"""
         return {
             "bot_name": "Support Assistant",
@@ -235,7 +234,7 @@ class PromptPresets:
         }
 
     @staticmethod
-    def research_assistant() -> Dict:
+    def research_assistant() -> dict:
         """Configuration for research assistant bot"""
         return {
             "bot_name": "Research Assistant",
@@ -250,7 +249,7 @@ class PromptPresets:
         }
 
     @staticmethod
-    def quick_qa() -> Dict:
+    def quick_qa() -> dict:
         """Configuration for quick Q&A bot"""
         return {
             "bot_name": "Quick Assistant",

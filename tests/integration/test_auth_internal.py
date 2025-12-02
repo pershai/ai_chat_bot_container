@@ -1,6 +1,6 @@
 from src.core.database import SessionLocal
-from src.services.auth_service import create_user, authenticate_user
 from src.schemas.user import UserCreate
+from src.services.auth_service import authenticate_user, create_user
 
 
 def test_auth():

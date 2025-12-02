@@ -4,21 +4,21 @@ Document ingestion service with multi-format support.
 Supports: PDF, DOCX, TXT, MD, HTML, CSV, XLSX
 """
 
-import os
 import logging
-from typing import Optional, List
-from fastapi import UploadFile, HTTPException
+import os
+
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from src.tools import get_vector_store
 from src.models.document import Document
 from src.services.document_processor import get_document_processor
+from src.tools import get_vector_store
 
 logger = logging.getLogger(__name__)
 
 
 async def ingest_document(
-    file: UploadFile, user_id: int, db: Session, tags: Optional[List[str]] = None
+    file: UploadFile, user_id: int, db: Session, tags: list[str] | None = None
 ) -> str:
     """
     Ingest a document into the vector store with user_id metadata.

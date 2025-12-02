@@ -1,11 +1,13 @@
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-import time
 import logging
+import time
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
 from pythonjsonlogger import jsonlogger
+
 from src.core.config import config
 from src.core.database import init_db
-from src.routers import auth, chat, upload, conversations
+from src.routers import auth, chat, conversations, upload
 
 # Configure Logging
 logger = logging.getLogger()

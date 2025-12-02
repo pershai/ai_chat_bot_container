@@ -4,14 +4,14 @@ PDF document processor for RAG system.
 Supports: PDF only
 """
 
-import os
-from typing import List, Dict, Any, Optional
-from datetime import datetime
 import logging
+import os
+from datetime import datetime
+from typing import Any
 
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class PDFProcessor:
     """Process PDF documents"""
 
-    def extract_text(self, file_path: str) -> List[Dict[str, Any]]:
+    def extract_text(self, file_path: str) -> list[dict[str, Any]]:
         """Extract text from PDF with page numbers"""
         loader = PyPDFLoader(file_path)
         documents = loader.load()
@@ -90,9 +90,9 @@ class DocumentProcessor:
         self,
         file_path: str,
         user_id: int,
-        filename: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-    ) -> List[Document]:
+        filename: str | None = None,
+        tags: list[str] | None = None,
+    ) -> list[Document]:
         """
         Process document with format-specific handler.
 
@@ -154,7 +154,7 @@ class DocumentProcessor:
 
         return final_chunks
 
-    def optimize_chunks(self, documents: List[Document]) -> List[Document]:
+    def optimize_chunks(self, documents: list[Document]) -> list[Document]:
         """
         Optimize document chunks with intelligent splitting.
 
@@ -170,12 +170,12 @@ class DocumentProcessor:
 
     def enrich_metadata(
         self,
-        documents: List[Document],
+        documents: list[Document],
         user_id: int,
         filename: str,
         file_type: str,
-        tags: List[str],
-    ) -> List[Document]:
+        tags: list[str],
+    ) -> list[Document]:
         """
         Enrich documents with comprehensive metadata.
 
@@ -212,13 +212,13 @@ class DocumentProcessor:
 
         return documents
 
-    def get_supported_formats(self) -> List[str]:
+    def get_supported_formats(self) -> list[str]:
         """Get list of supported file formats"""
         return list(self.SUPPORTED_FORMATS.keys())
 
 
 # Singleton instance for easy access
-_processor_instance: Optional[DocumentProcessor] = None
+_processor_instance: DocumentProcessor | None = None
 
 
 def get_document_processor() -> DocumentProcessor:

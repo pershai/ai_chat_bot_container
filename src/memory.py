@@ -6,9 +6,9 @@ and intelligent memory retention for long conversations.
 """
 
 import tiktoken
-from typing import List, Dict, Optional, Tuple
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
+
 from src.core.config import config
 from src.prompts import PromptTemplates
 
@@ -41,9 +41,9 @@ class ConversationMemory:
         self.llm = ChatGoogleGenerativeAI(
             google_api_key=config.GOOGLE_API_KEY, model=config.LLM_MODEL_NAME
         )
-        self.summary_cache: Dict[str, str] = {}
+        self.summary_cache: dict[str, str] = {}
 
-    def count_tokens(self, messages: List[BaseMessage]) -> int:
+    def count_tokens(self, messages: list[BaseMessage]) -> int:
         """
         Count total tokens in a list of messages.
 
@@ -59,7 +59,7 @@ class ConversationMemory:
             total += len(self.encoding.encode(content))
         return total
 
-    def _extract_message_contents(self, messages: List[BaseMessage]) -> List[str]:
+    def _extract_message_contents(self, messages: list[BaseMessage]) -> list[str]:
         """Extract content strings from messages for summarization"""
         contents = []
         for msg in messages:
@@ -67,7 +67,7 @@ class ConversationMemory:
             contents.append(f"{role}: {msg.content}")
         return contents
 
-    async def summarize_messages(self, messages: List[BaseMessage]) -> str:
+    async def summarize_messages(self, messages: list[BaseMessage]) -> str:
         """
         Summarize a list of messages into a concise summary.
 
@@ -102,8 +102,8 @@ class ConversationMemory:
         return summary
 
     async def manage_context(
-        self, messages: List[BaseMessage], force_summarize: bool = False
-    ) -> Tuple[List[BaseMessage], Optional[str]]:
+        self, messages: list[BaseMessage], force_summarize: bool = False
+    ) -> tuple[list[BaseMessage], str | None]:
         """
         Manage conversation context by summarizing old messages if needed.
 
@@ -143,7 +143,7 @@ class ConversationMemory:
 
         return managed_messages, summary
 
-    async def extract_topics(self, messages: List[BaseMessage]) -> List[str]:
+    async def extract_topics(self, messages: list[BaseMessage]) -> list[str]:
         """
         Extract main topics from conversation.
 
@@ -171,10 +171,10 @@ class ConversationMemory:
 
     async def get_conversation_context(
         self,
-        messages: List[BaseMessage],
+        messages: list[BaseMessage],
         doc_count: int = 0,
-        doc_topics: Optional[List[str]] = None,
-    ) -> Dict:
+        doc_topics: list[str] | None = None,
+    ) -> dict:
         """
         Generate conversation context dictionary for prompt generation.
 
@@ -228,10 +228,10 @@ class ContextWindowManager:
 
     async def prepare_messages(
         self,
-        messages: List[BaseMessage],
+        messages: list[BaseMessage],
         system_prompt: str,
         reserve_tokens: int = 1000,
-    ) -> List[BaseMessage]:
+    ) -> list[BaseMessage]:
         """
         Prepare messages for LLM call, ensuring they fit within token limits.
 
@@ -277,8 +277,8 @@ class ContextWindowManager:
 
 
 # Singleton instances for easy access
-_memory_instance: Optional[ConversationMemory] = None
-_context_manager_instance: Optional[ContextWindowManager] = None
+_memory_instance: ConversationMemory | None = None
+_context_manager_instance: ContextWindowManager | None = None
 
 
 def get_conversation_memory() -> ConversationMemory:

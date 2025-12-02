@@ -1,7 +1,9 @@
-import redis
-import json
 import hashlib
-from typing import Optional, Any
+import json
+from typing import Any
+
+import redis
+
 from src.core.config import config
 
 # Redis client
@@ -16,7 +18,7 @@ def get_cache_key(prefix: str, *args) -> str:
     return hashlib.md5(key_data.encode()).hexdigest()
 
 
-def get_cached(key: str) -> Optional[Any]:
+def get_cached(key: str) -> Any | None:
     """Get value from cache."""
     try:
         value = redis_client.get(key)
