@@ -1,4 +1,3 @@
-import io
 import asyncio
 from src.core.database import SessionLocal
 from src.services.ingestion_service import ingest_pdf

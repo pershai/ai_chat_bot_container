@@ -1,7 +1,4 @@
-import asyncio
 import requests
-from src.core.database import SessionLocal
-from src.models.user import User
 
 BASE_URL = "http://127.0.0.1:8000"
 

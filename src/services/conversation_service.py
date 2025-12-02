@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from src.models.conversation import Conversation, Message
-from src.schemas.conversation import ConversationCreate, MessageCreate
 from typing import List, Optional
 
 def create_conversation(db: Session, user_id: int, title: str) -> Conversation:

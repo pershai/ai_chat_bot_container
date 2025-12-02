@@ -1,7 +1,6 @@
 import os
 import argparse
 import requests
-import sys
 
 def batch_upload(directory: str, api_url: str):
     """
